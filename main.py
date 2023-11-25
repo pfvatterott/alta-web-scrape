@@ -41,8 +41,9 @@ total_ft_and_days = driver.find_element(By.XPATH, value='//*[@id="app"]/main/sec
 # Yearly Totals
 total_days = total_ft_and_days.text.split("SKIED: ")[1]
 total_ft = total_ft_and_days.text.split("TOTAL VERTICAL FEET ")[1].split(", NUMBER")[0]
+average_ft_per_day = int(total_ft.replace(",", "")) / int(total_days)
 
-# Individual days
+# Individual day totals
 day_list = []
 each_day = driver.find_elements(By.CSS_SELECTOR, ".card-body .row .col-12 div h6")
 for day in each_day:
@@ -55,6 +56,23 @@ for day in each_day:
         "feet": feet
     }
     day_list.append(obj)
-
-average_ft_per_day = int(total_ft.replace(",", "")) / int(total_days)
-print(average_ft_per_day)
+    
+# Runs Each Day
+runs_each_day = driver.find_elements(By.CSS_SELECTOR, ".card-body .row .col-12 div .table-responsive table")
+runs_in_day_index = 0
+for runs in runs_each_day:
+    each_run = runs.text.split("\n")
+    run_array = []
+    for run in each_run:
+        if "Lift Time" not in run:
+            obj = {
+                "lift": run.split(" ")[0],
+                "time": run.split(" ")[1] + " " + run.split(" ")[2]
+            }
+            run_array.append(obj)
+    day_list[runs_in_day_index]["runs"] = run_array
+    runs_in_day_index += 1
+    
+print(day_list)
+            
+        
