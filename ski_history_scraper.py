@@ -4,7 +4,6 @@ from decouple import config
 from datetime import datetime
 import time
 
-web_id = config("web_id")
 email = config("email")
 password = config("password")
 
@@ -27,10 +26,11 @@ class SkiHistory:
         self.driver.find_element(By.XPATH, value='//*[@id="app"]/main/section/div/div/div/div/form/div[2]/button').click()
         time.sleep(1)
         
-    def enter_web_id(self):
+    def enter_web_id(self, web_id):
         self.driver.find_element(By.XPATH, value='//*[@id="wtp-0"]').send_keys(web_id)
         self.driver.find_element(By.XPATH, value='//*[@id="app"]/main/section/div[3]/div/div/div[1]/div/div/div/form/div/div[2]/div/div/div/button').click()
         time.sleep(3)
+        # TODO check if web ID is valid. If not, return error to frontend
         
     def get_ski_history(self):
         self.driver.find_element(By.XPATH, value='//*[@id="app"]/main/section/div[3]/div/div/div[1]/div/div/div[3]/div/h4/a/i').click()
