@@ -30,11 +30,14 @@ class SkiHistory:
         self.driver.find_element(By.XPATH, value='//*[@id="wtp-0"]').send_keys(web_id)
         self.driver.find_element(By.XPATH, value='//*[@id="app"]/main/section/div[3]/div/div/div[1]/div/div/div/form/div/div[2]/div/div/div/button').click()
         time.sleep(3)
-        # TODO check if web ID is valid. If not, return error to frontend
+        error_or_success_msg = self.driver.find_element(By.CLASS_NAME, value="feedback")
+        if len(error_or_success_msg.text) > 0:
+            self.driver.quit()
+            return False
         
     def get_ski_history(self):
         self.driver.find_element(By.XPATH, value='//*[@id="app"]/main/section/div[3]/div/div/div[1]/div/div/div[3]/div/h4/a/i').click()
-        time.sleep(3)
+        time.sleep(5)
         return self.driver.find_element(By.XPATH, value='//*[@id="app"]/main/section/div[3]/div/div/div[1]/div/div/div[3]/div/h5')
         
     def get_each_day(self):

@@ -20,6 +20,7 @@ export default function Home() {
     }
 
     async function saveWebId(e) {
+        set_web_id_helper_text(<></>)
         e.preventDefault()
         const requestOptions = {
             method: 'POST',
@@ -32,10 +33,14 @@ export default function Home() {
         };
         const response = await fetch('/api/saveWebId', requestOptions);
         let data = await response.json();
-        set_web_id_helper_text(<></>)
         if (data.response === "Web ID Already Used") {
             set_web_id_helper_text(<>
                 <span className="font-medium">Oops!</span> That Web ID is already being used!
+              </>)
+        }
+        else if (data.response === "Web ID Not Valid. Try Again") {
+            set_web_id_helper_text(<>
+                <span className="font-medium">Oops!</span> That Web ID is Not Valid. Try Again!
               </>)
         }
     }
