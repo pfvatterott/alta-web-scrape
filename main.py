@@ -3,41 +3,52 @@ from flask_sqlalchemy import SQLAlchemy
 from ski_history_scraper import SkiHistory
 
 app = Flask(__name__)
-# app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///alta_web_scrapper.db"
-# db = SQLAlchemy()
-# db.init_app(app)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///alta_web_scrapper.db"
+db = SQLAlchemy()
+db.init_app(app)
 
-# class Users(db.Model):
-#     userId = db.Column(db.Integer, primary_key=True)
-#     email = db.Column(db.String, unique=True, nullable=False)
-#     userName = db.Column(db.String, nullable=False, unique=True)
-#     web_id = db.Column(db.String, nullable=False, unique=True)
-#     yearly_elevation = db.Column(db.Integer, nullable=False)
-#     days_skied = db.Column(db.Integer, nullable=False)
-#     average_ft = db.Column(db.Integer, nullable=False)
+
+class Users(db.Model):
+    userId = db.Column(db.String, primary_key=True)
+    email = db.Column(db.String, unique=True, nullable=False)
+    userName = db.Column(db.String, nullable=False, unique=True)
+    # web_id = db.Column(db.String, unique=True)
+    # yearly_elevation = db.Column(db.Integer)
+    # days_skied = db.Column(db.Integer)
+    # average_ft = db.Column(db.Integer)
     
-# class DailySkiData(db.Model):
-#     dailyDataId = db.Column(db.Integer, primary_key=True)
-#     userId = db.Column(db.Integer, nullable=False)
-#     date = db.Column(db.Date, nullable=False)
-#     daily_elevation = db.Column(db.Integer, nullable=False)
-#     daily_runs = db.Column(db.Integer, nullable=False)
+class DailySkiData(db.Model):
+    dailyDataId = db.Column(db.Integer, primary_key=True)
+    userId = db.Column(db.String, nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    daily_elevation = db.Column(db.Integer, nullable=False)
+    daily_runs = db.Column(db.Integer, nullable=False)
     
-# class DailySkiData(db.Model):
-#     runDataId = db.Column(db.Integer, primary_key=True)
-#     dailyDataId = db.Column(db.Integer, nullable=False)
-#     date = db.Column(db.Date, nullable=False)
-#     run_elevation = db.Column(db.Integer, nullable=False)
-#     chairlift = db.Column(db.String, nullable=False)
-#     time = db.Column(db.Time, nullable=False)
+class runSkiData(db.Model):
+    runDataId = db.Column(db.Integer, primary_key=True)
+    dailyDataId = db.Column(db.Integer, nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    run_elevation = db.Column(db.Integer, nullable=False)
+    chairlift = db.Column(db.String, nullable=False)
+    time = db.Column(db.Time, nullable=False)
     
-@app.route('/createUser', methods=["POST"])
-def createUser():
+@app.route('/api/login', methods=["POST"])
+def login():
     body = request.get_json()
-    print(body)
-    return {
+    with app.app_context():
+        db.create_all()
+        userCheck = db.session.execute(db.select(Users).where(Users.userId == body['userId'])).scalar()
+        if not userCheck: 
+            user = Users(
+                userId = body['userId'], 
+                email = body['email'],
+                userName = body['email']
+            )
+            db.session.add(user)
+            db.session.commit()
+        return {
         "response": "success"
-    }
+        }
 
 # ski_history = SkiHistory()
 # ski_history.login()
