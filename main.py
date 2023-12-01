@@ -35,7 +35,9 @@ app = Flask(__name__)
 def createUser():
     body = request.get_json()
     print(body)
-    return 'success'
+    return {
+        "response": "success"
+    }
 
 # ski_history = SkiHistory()
 # ski_history.login()
