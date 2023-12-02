@@ -29,7 +29,6 @@ class runSkiData(db.Model):
     runDataId = db.Column(db.Integer, primary_key=True)
     dailyDataId = db.Column(db.Integer, nullable=False)
     date = db.Column(db.Date, nullable=False)
-    run_elevation = db.Column(db.Integer, nullable=False)
     chairlift = db.Column(db.String, nullable=False)
     time = db.Column(db.Time, nullable=False)
     
@@ -108,19 +107,36 @@ def initial_user_ski_data_sync(userId, web_id):
     for day in day_list:
         total_runs = len(day['runs'])
         dataObj = datetime.strptime(day['date'], '%m/%d/%Y')
-        save_daily_totals(date=dataObj, feet=day['feet'], total_runs=total_runs, userId=userId)
+        dailyDataId = save_daily_totals(date=dataObj, feet=day['feet'], total_runs=total_runs, userId=userId)
+        for run in day['runs']:
+            time_object = datetime.strptime(run['time'], '%I:%M %p')
+            save_run(dailyDataId=dailyDataId, lift=run['lift'], time=time_object, userId=userId, date=dataObj)
     return True
 
 def save_daily_totals(date, feet, total_runs, userId):
-
-    dailyData = DailySkiData(
-        userId = userId,
-        date = date,
-        daily_elevation = feet,
-        daily_runs = total_runs
-    )
-    db.session.add(dailyData)
-    db.session.commit()
+    dayCheck = db.session.execute(db.select(DailySkiData).where((DailySkiData.date == date.strftime('%Y-%m-%d')) and (DailySkiData.userId == userId))).scalar()
+    if dayCheck == None:
+        dailyData = DailySkiData(
+            userId = userId,
+            date = date,
+            daily_elevation = feet,
+            daily_runs = total_runs
+        )
+        db.session.add(dailyData)
+        db.session.commit()
+        return dailyData.dailyDataId
+    
+def save_run(dailyDataId, lift, time, userId, date):
+    runCheck = db.session.execute(db.select(runSkiData).where((runSkiData.time == time.strftime('%H:%M:%S')) and (DailySkiData.userId == userId))).scalar()
+    if runCheck == None:
+        runData = runSkiData(
+            dailyDataId = dailyDataId,
+            date = date,
+            chairlift = lift,
+            time = time.strftime('%H:%M:%S')
+        )
+        db.session.add(runData)
+        db.session.commit()
                 
 if __name__ == "__main__":
     app.run(debug=True)
