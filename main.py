@@ -31,6 +31,7 @@ class runSkiData(db.Model):
     date = db.Column(db.Date, nullable=False)
     chairlift = db.Column(db.String, nullable=False)
     time = db.Column(db.Time, nullable=False)
+    userId = db.Column(db.String, nullable=False)
     
 @app.route('/api/login', methods=["POST"])
 def login():
@@ -51,7 +52,7 @@ def login():
         }
         
 @app.route('/api/saveWebId', methods=["POST"])
-def createWebId():
+async def createWebId():
     body = request.get_json()
     with app.app_context():
         userCheck = db.session.execute(db.select(Users).where(Users.web_id == body['web_id'])).scalar()
@@ -60,7 +61,7 @@ def createWebId():
             user_to_update = db.session.execute(db.select(Users).where(Users.userId == body['userId'])).scalar()
             user_to_update.web_id = body['web_id']
             db.session.commit()
-            initial_sync_res = initial_user_ski_data_sync(body['userId'], body['web_id'])
+            initial_sync_res = await initial_user_ski_data_sync(body['userId'], body['web_id'])
             if initial_sync_res == False:
                 return {"response": "Web ID Not Valid. Try Again"}
             return {"response": "success"}
@@ -68,7 +69,7 @@ def createWebId():
             return {"response": "Web ID Already Used"}
 
 
-def initial_user_ski_data_sync(userId, web_id):
+async def initial_user_ski_data_sync(userId, web_id):
     # Start Web Scraper
     ski_history = SkiHistory()
     ski_history.login()
@@ -102,18 +103,18 @@ def initial_user_ski_data_sync(userId, web_id):
         
     # Runs Each Day
     day_list = ski_history.get_runs_each_day(day_list)
-    print(day_list)
     ski_history.driver.quit()
     for day in day_list:
         total_runs = len(day['runs'])
         dataObj = datetime.strptime(day['date'], '%m/%d/%Y')
-        dailyDataId = save_daily_totals(date=dataObj, feet=day['feet'], total_runs=total_runs, userId=userId)
+        dailyDataId = await save_daily_totals(date=dataObj, feet=day['feet'], total_runs=total_runs, userId=userId)
         for run in day['runs']:
             time_object = datetime.strptime(run['time'], '%I:%M %p')
-            save_run(dailyDataId=dailyDataId, lift=run['lift'], time=time_object, userId=userId, date=dataObj)
+            sqlalchemy_time = time_object.time()
+            await save_run(dailyDataId=dailyDataId, lift=run['lift'], time=sqlalchemy_time, userId=userId, date=dataObj)
     return True
 
-def save_daily_totals(date, feet, total_runs, userId):
+async def save_daily_totals(date, feet, total_runs, userId):
     dayCheck = db.session.execute(db.select(DailySkiData).where((DailySkiData.date == date.strftime('%Y-%m-%d')) and (DailySkiData.userId == userId))).scalar()
     if dayCheck == None:
         dailyData = DailySkiData(
@@ -125,18 +126,36 @@ def save_daily_totals(date, feet, total_runs, userId):
         db.session.add(dailyData)
         db.session.commit()
         return dailyData.dailyDataId
+    return dayCheck.dailyDataId
     
-def save_run(dailyDataId, lift, time, userId, date):
-    runCheck = db.session.execute(db.select(runSkiData).where((runSkiData.time == time.strftime('%H:%M:%S')) and (DailySkiData.userId == userId))).scalar()
+async def save_run(dailyDataId, lift, time, userId, date):
+    runCheck = db.session.execute(db.select(runSkiData).where((runSkiData.time == time) and (DailySkiData.userId == userId))).scalar()
     if runCheck == None:
         runData = runSkiData(
             dailyDataId = dailyDataId,
             date = date,
             chairlift = lift,
-            time = time.strftime('%H:%M:%S')
+            time = time,
+            userId = userId
         )
         db.session.add(runData)
         db.session.commit()
+    return
+
+
+@app.route('/api/getUserSnowData/<userId>', methods=["GET"])
+async def getUserSnowData(userId):
+    user = db.session.execute(db.select(Users).where(Users.userId == userId)).scalar()
+    print(user)
+    return {
+        "userId": user.userId,
+        "email": user.email,
+        "userName": user.userName,
+        "web_id": user.web_id,
+        "yearly_elevation": user.yearly_elevation,
+        "days_skied": user.days_skied,
+        "average_ft": user.average_ft
+    }
                 
 if __name__ == "__main__":
     app.run(debug=True)

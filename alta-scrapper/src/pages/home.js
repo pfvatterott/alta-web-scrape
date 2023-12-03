@@ -1,12 +1,14 @@
 import React, { useState} from "react";
 import { useNavigate  } from 'react-router-dom';
 import { Button, Label, TextInput } from 'flowbite-react';
-import { useRedirectFunctions, useAuthInfo} from "@propelauth/react";
+import { useAuthInfo} from "@propelauth/react";
 
 export default function Home() {
     let user
     const [web_id_helper_text, set_web_id_helper_text] = useState(<></>)
+    const [user_snow_data, set_user_snow_data] = useState(<></>)
     let navigate = useNavigate();
+    RetrieveUser()
 
     function RetrieveUser() {
         const authInfo = useAuthInfo();
@@ -14,50 +16,32 @@ export default function Home() {
             return <div>Loading...</div>;
         } else if (authInfo.isLoggedIn) {
             user = authInfo.user
+            if (!user_snow_data) {
+                getUserSnowData(user.userId)
+            }
         } else {
             navigate('/welcome');
         }
     }
 
-    async function saveWebId(e) {
-        set_web_id_helper_text(<></>)
-        e.preventDefault()
+    async function getUserSnowData(userId){
         const requestOptions = {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(
-                {
-                    web_id: e.target.webId.value,
-                    userId: user.userId
-                })
+            method: 'GET',
+            headers: { 'Accept': 'application/json' },
         };
-        const response = await fetch('/api/saveWebId', requestOptions);
+        const response = await fetch(`/api/getUserSnowData/${userId}`, requestOptions);
         let data = await response.json();
-        if (data.response === "Web ID Already Used") {
-            set_web_id_helper_text(<>
-                <span className="font-medium">Oops!</span> That Web ID is already being used!
-              </>)
+        if (data.web_id == null) {
+            navigate('/web_id')
         }
-        else if (data.response === "Web ID Not Valid. Try Again") {
-            set_web_id_helper_text(<>
-                <span className="font-medium">Oops!</span> That Web ID is Not Valid. Try Again!
-              </>)
+        else {
+            set_user_snow_data(data)
         }
     }
 
-
     return (
         <div>
-            {RetrieveUser()}
-            <form className="flex max-w-md flex-col gap-4" onSubmit={saveWebId}>
-                <div>
-                    <div className="mb-2 block">
-                        <Label htmlFor="webId" value="Enter Your Web ID found on your Alta Season Pass" />
-                    </div>
-                    <TextInput id="webId" placeholder="XXXXXXXX-XXX-XXX" required helperText={web_id_helper_text}/>
-                </div>
-                <Button type="submit">Submit</Button>
-            </form>
+            <h1>Hey</h1>
         </div>
     )
 }

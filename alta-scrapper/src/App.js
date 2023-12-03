@@ -7,6 +7,7 @@ import {
 import './App.css';
 import Welcome from "./pages/welcome"
 import Home from "./pages/home"
+import WebId from "./pages/webId";
 
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
           <Routes>
               <Route exact path="/" element={<Welcome />} />
               <Route path="/home" element={<Home />} />
+              <Route path="/web_id" element={<WebId />} />
           </Routes>
       </Router>
   );
