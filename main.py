@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from ski_history_scraper import SkiHistory
-from datetime import datetime, date
+from datetime import datetime
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///alta_web_scrapper.db"
@@ -155,6 +155,18 @@ async def getUserSnowData(userId):
         "yearly_elevation": user.yearly_elevation,
         "days_skied": user.days_skied,
         "average_ft": user.average_ft
+    }
+    
+@app.route('/api/lastDay/<userId>', methods=["GET"])
+async def getUserMostRecentDay(userId):
+    lastDay = db.session.execute(db.select(DailySkiData).where(DailySkiData.userId == userId).order_by(DailySkiData.date.desc())).scalar()
+    print(lastDay)
+    return {
+        "dailyDataId": lastDay.dailyDataId,
+        "userId": lastDay.userId,
+        "date": lastDay.date.strftime('%m/%d/%Y'),
+        "daily_elevation": lastDay.daily_elevation,
+        "daily_runs": lastDay.daily_runs
     }
                 
 if __name__ == "__main__":
