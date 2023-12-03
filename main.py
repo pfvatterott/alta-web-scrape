@@ -62,7 +62,7 @@ async def createWebId():
             db.session.commit()
             initial_sync_res = await initial_user_ski_data_sync(body['userId'], body['web_id'])
             if initial_sync_res == False:
-                return {"response": "Web ID Not Valid. Try Again"}
+                return {"response": "Web ID Not Valid. Try Again"}  
             return {"response": "success"}
         else:
             return {"response": "Web ID Already Used"}

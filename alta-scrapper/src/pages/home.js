@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { useAuthInfo } from "@propelauth/react";
-import { Card } from 'flowbite-react';
+import { Spinner } from 'flowbite-react';
 import NavBar from "../components/NavBar";
 import FooterCustom from "../components/FooterCustom";
 import SeasonTotalCard from "../components/SeasonTotalCard";
@@ -22,7 +22,6 @@ export default function Home() {
             user = authInfo.user
             if (!user_snow_data) {
                 getUserSnowData(user.userId)
-                getLastDaySkied(user.userId)
             }
         } else {
             navigate('/welcome');
@@ -45,6 +44,9 @@ export default function Home() {
         else {
             set_user_snow_data(data)
         }
+        if (!last_day_skied_data && data.web_id) {
+            getLastDaySkied(user.userId)
+        }
         return
     }
 
@@ -66,18 +68,20 @@ export default function Home() {
             <NavBar />
             <div classNameName="flex">
                 <section className="bg-white dark:bg-gray-900">
-                    <div className="py-8 px-4 mx-auto max-w-screen-xl lg:py-16">
-                        {user_snow_data && last_day_skied_data ? <div>
+
+                    {user_snow_data && last_day_skied_data ? <div>
+                        <h3 className="mb-4 text-4xl font-extrabold tracking-tight leading-none text-gray-900 md:text-3xl lg:text-6xl dark:text-white">Hey, {user_snow_data.userName}</h3>
+                        <div className="py-8 px-4 mx-auto max-w-screen-xl lg:py-16">
                             <SeasonTotalCard user_snow_data={user_snow_data} />
                             <LastDayCard last_day_skied_data={last_day_skied_data} />
+                        </div>
+                    </div> : <Spinner aria-label="Default status example" className="h-screen items-center"/>}
 
-                        </div> : null}
-                    </div>
                 </section>
 
-            </div>
+            </div >
             <FooterCustom />
 
-        </div>
+        </div >
     )
 }

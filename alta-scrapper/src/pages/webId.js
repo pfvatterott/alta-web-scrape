@@ -46,7 +46,7 @@ export default function WebId() {
         <span className="font-medium">Oops!</span> That Web ID is Not Valid. Try Again!
       </>)
     }
-    navigate('/username')
+    navigate('/set_username')
   }
 
  
@@ -72,7 +72,7 @@ export default function WebId() {
               </form>
             </div>
           </div>
-        </section> : <Spinner aria-label="Default status example" />}
+        </section> : <Spinner aria-label="Default status example" className="h-screen items-center"/>}
 
         
 
