@@ -5,8 +5,7 @@ import { useAuthInfo} from "@propelauth/react";
 
 export default function Home() {
     let user
-    const [web_id_helper_text, set_web_id_helper_text] = useState(<></>)
-    const [user_snow_data, set_user_snow_data] = useState(<></>)
+    const [user_snow_data, set_user_snow_data] = useState()
     let navigate = useNavigate();
     RetrieveUser()
 
