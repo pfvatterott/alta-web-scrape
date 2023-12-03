@@ -12,7 +12,7 @@ db.init_app(app)
 class Users(db.Model):
     userId = db.Column(db.String, primary_key=True)
     email = db.Column(db.String, unique=True, nullable=False)
-    userName = db.Column(db.String, nullable=False, unique=True)
+    userName = db.Column(db.String, unique=True)
     web_id = db.Column(db.String, unique=True)
     yearly_elevation = db.Column(db.Integer)
     days_skied = db.Column(db.Integer)
@@ -42,8 +42,7 @@ def login():
         if not userCheck: 
             user = Users(
                 userId = body['userId'], 
-                email = body['email'],
-                userName = body['email']
+                email = body['email']
             )
             db.session.add(user)
             db.session.commit()
@@ -67,6 +66,20 @@ async def createWebId():
             return {"response": "success"}
         else:
             return {"response": "Web ID Already Used"}
+        
+@app.route('/api/saveUsername', methods=["POST"])
+async def createUsername():
+    body = request.get_json()
+    with app.app_context():
+        userCheck = db.session.execute(db.select(Users).where(Users.userName == body['userName'])).scalar()
+        if not userCheck:
+            db.create_all()
+            user_to_update = db.session.execute(db.select(Users).where(Users.userId == body['userId'])).scalar()
+            user_to_update.userName = body['userName']
+            db.session.commit()
+            return {"response": "success"}
+        else:
+            return {"response": "Username Already Used"}
 
 
 async def initial_user_ski_data_sync(userId, web_id):

@@ -39,6 +39,9 @@ export default function Home() {
         if (data.web_id == null) {
             navigate('/web_id')
         }
+        else if (data.userName == null) {
+            navigate('/set_username')
+        }
         else {
             set_user_snow_data(data)
         }

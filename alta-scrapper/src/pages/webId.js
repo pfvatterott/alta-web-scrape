@@ -46,7 +46,7 @@ export default function WebId() {
         <span className="font-medium">Oops!</span> That Web ID is Not Valid. Try Again!
       </>)
     }
-    navigate('/home')
+    navigate('/username')
   }
 
  
