@@ -2,6 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from decouple import config
 from datetime import datetime
+import requests
 import time
 
 email = config("email")
@@ -25,6 +26,49 @@ class SkiHistory:
         self.driver.find_element(By.XPATH, value='//*[@id="checkout-login-password"]').send_keys(password)
         self.driver.find_element(By.XPATH, value='//*[@id="app"]/main/section/div/div/div/div/form/div[2]/button').click()
         time.sleep(1)
+        cookies_list = self.driver.get_cookies()
+        cookieString = ""
+        for cookie in cookies_list[:-1]:
+            cookieString = cookieString + cookie["name"] + "="+cookie["value"]+"; "
+
+        cookieString = cookieString  + cookies_list[-1]["name"] + "="+ cookies_list[-1]["value"]
+        xsrf_token = cookieString.split("XSRF-TOKEN=")[1].split("; ")[0].replace("%3D", "=")
+        return {
+            "cookieString": cookieString,
+            "xsrf_token": xsrf_token
+        }
+        
+    def getSeasonId(self, web_id, cookies, xsrf_token): 
+        req_params = {
+            "wtp": web_id,
+            "productId": 0
+        }
+        req_headers = {
+            "Cookie": cookies,
+            "X-Requested-With": "XMLHttpRequest",
+            "X-Xsrf-Token": xsrf_token
+        }
+
+        response = requests.post(url="https://shop.alta.com/axess/ride-data", json=req_params, headers=req_headers)
+        return response.json()
+        
+    def getSkiHistory(self, nposno, nprojno, nserialno, szvalidfrom, cookies, xsrf_token):
+        req_params = {
+            "nposno": nposno,
+            "nprojno": nprojno,
+            "nserialno": nserialno,
+            "szvalidfrom": szvalidfrom
+        }
+        req_headers = {
+            "Cookie": cookies,
+            "X-Requested-With": "XMLHttpRequest",
+            "X-Xsrf-Token": xsrf_token
+        }
+
+        response = requests.post(url="https://shop.alta.com/axess/rides", json=req_params, headers=req_headers)
+        return response.json()  
+    
+        
         
     def enter_web_id(self, web_id):
         self.driver.find_element(By.XPATH, value='//*[@id="wtp-0"]').send_keys(web_id)
