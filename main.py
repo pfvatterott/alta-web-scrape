@@ -2,6 +2,7 @@ from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from ski_history_scraper import SkiHistory
 from datetime import datetime
+from propelAuth import PropelAuth
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///alta_web_scrapper.db"
@@ -177,34 +178,40 @@ async def save_run(dailyDataId, lift, time, userId, date):
 
 @app.route('/api/getUserSnowData/<userId>', methods=["GET"])
 async def getUserSnowData(userId):
-    user = db.session.execute(db.select(Users).where(Users.userId == userId)).scalar()
-    print(user)
-    return {
-        "userId": user.userId,
-        "email": user.email,
-        "userName": user.userName,
-        "web_id": user.web_id,
-        "yearly_elevation": user.yearly_elevation,
-        "days_skied": user.days_skied,
-        "average_ft": user.average_ft,
-        "collins": user.collins,
-        "wildcat": user.wildcat,
-        "sugarloaf": user.sugarloaf,
-        "sunnyside": user.sunnyside,
-        "supreme": user.supreme
-    }
+    auth = PropelAuth()
+    if auth.checkUser(request.headers["Authorization"]):
+        user = db.session.execute(db.select(Users).where(Users.userId == userId)).scalar()
+        return {
+            "userId": user.userId,
+            "email": user.email,
+            "userName": user.userName,
+            "web_id": user.web_id,
+            "yearly_elevation": user.yearly_elevation,
+            "days_skied": user.days_skied,
+            "average_ft": user.average_ft,
+            "collins": user.collins,
+            "wildcat": user.wildcat,
+            "sugarloaf": user.sugarloaf,
+            "sunnyside": user.sunnyside,
+            "supreme": user.supreme
+        }
+    else:
+        return {"Error": "User not authorized"}
     
 @app.route('/api/lastDay/<userId>', methods=["GET"])
 async def getUserMostRecentDay(userId):
-    lastDay = db.session.execute(db.select(DailySkiData).where(DailySkiData.userId == userId).order_by(DailySkiData.date.desc())).scalar()
-    print(lastDay)
-    return {
-        "dailyDataId": lastDay.dailyDataId,
-        "userId": lastDay.userId,
-        "date": lastDay.date.strftime('%m/%d/%Y'),
-        "daily_elevation": lastDay.daily_elevation,
-        "daily_runs": lastDay.daily_runs
-    }
+    auth = PropelAuth()
+    if auth.checkUser(request.headers["Authorization"]):
+        lastDay = db.session.execute(db.select(DailySkiData).where(DailySkiData.userId == userId).order_by(DailySkiData.date.desc())).scalar()
+        return {
+            "dailyDataId": lastDay.dailyDataId,
+            "userId": lastDay.userId,
+            "date": lastDay.date.strftime('%m/%d/%Y'),
+            "daily_elevation": lastDay.daily_elevation,
+            "daily_runs": lastDay.daily_runs
+        }
+    else:
+        return {"Error": "User not authorized"}
                 
 if __name__ == "__main__":
     app.run(debug=True)

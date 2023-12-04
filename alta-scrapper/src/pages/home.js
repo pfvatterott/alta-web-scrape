@@ -10,6 +10,7 @@ import ChairliftCard from "../components/ChairliftCard";
 
 export default function Home() {
     let user
+    let bearerToken
     const [user_snow_data, set_user_snow_data] = useState()
     const [last_day_skied_data, set_last_day_skied_data] = useState()
     let navigate = useNavigate();
@@ -20,6 +21,7 @@ export default function Home() {
         if (authInfo.loading) {
             return <div>Loading...</div>;
         } else if (authInfo.isLoggedIn) {
+            bearerToken = `Bearer ${authInfo.accessToken}`
             user = authInfo.user
             if (!user_snow_data) {
                 getUserSnowData(user.userId)
@@ -32,7 +34,7 @@ export default function Home() {
     async function getUserSnowData(userId) {
         const requestOptions = {
             method: 'GET',
-            headers: { 'Accept': 'application/json' },
+            headers: { 'Accept': 'application/json', "Authorization": bearerToken },
         };
         const response = await fetch(`/api/getUserSnowData/${userId}`, requestOptions);
         let data = await response.json();
@@ -54,7 +56,7 @@ export default function Home() {
     async function getLastDaySkied(userId) {
         const requestOptions = {
             method: 'GET',
-            headers: { 'Accept': 'application/json' },
+            headers: { 'Accept': 'application/json', "Authorization": bearerToken },
         };
         const response = await fetch(`/api/lastDay/${userId}`, requestOptions);
         let data = await response.json();
