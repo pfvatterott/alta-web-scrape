@@ -6,6 +6,7 @@ import NavBar from "../components/NavBar";
 import FooterCustom from "../components/FooterCustom";
 import SeasonTotalCard from "../components/SeasonTotalCard";
 import LastDayCard from "../components/LastDayCard";
+import ChairliftCard from "../components/ChairliftCard";
 
 export default function Home() {
     let user
@@ -73,7 +74,16 @@ export default function Home() {
                         <h3 className="mb-4 text-4xl font-extrabold tracking-tight leading-none text-gray-900 md:text-3xl lg:text-6xl dark:text-white">Hey, {user_snow_data.userName}</h3>
                         <div className="py-8 px-4 mx-auto max-w-screen-xl lg:py-16">
                             <SeasonTotalCard user_snow_data={user_snow_data} />
+                       
+                        </div>
+                        <div className="py-8 px-4 mx-auto max-w-screen-xl lg:py-16">
+                          
                             <LastDayCard last_day_skied_data={last_day_skied_data} />
+                           
+                        </div>
+                        <div className="py-8 px-4 mx-auto max-w-screen-xl lg:py-16">
+                           
+                            <ChairliftCard user_snow_data={user_snow_data} />
                         </div>
                     </div> : <Spinner aria-label="Default status example" className="h-screen items-center"/>}
 

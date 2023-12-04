@@ -186,7 +186,12 @@ async def getUserSnowData(userId):
         "web_id": user.web_id,
         "yearly_elevation": user.yearly_elevation,
         "days_skied": user.days_skied,
-        "average_ft": user.average_ft
+        "average_ft": user.average_ft,
+        "collins": user.collins,
+        "wildcat": user.wildcat,
+        "sugarloaf": user.sugarloaf,
+        "sunnyside": user.sunnyside,
+        "supreme": user.supreme
     }
     
 @app.route('/api/lastDay/<userId>', methods=["GET"])
