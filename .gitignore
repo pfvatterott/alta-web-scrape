@@ -1,5 +1,6 @@
 
 .env
 alta-scrapper/node_modules/
-instance/alta_web_scrapper.db
+instance/
 .DS_Store
+*.db

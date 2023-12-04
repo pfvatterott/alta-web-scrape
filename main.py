@@ -17,6 +17,11 @@ class Users(db.Model):
     yearly_elevation = db.Column(db.Integer)
     days_skied = db.Column(db.Integer)
     average_ft = db.Column(db.Integer)
+    collins = db.Column(db.Integer)
+    wildcat = db.Column(db.Integer)
+    sunnyside = db.Column(db.Integer)
+    supreme = db.Column(db.Integer)
+    sugarloaf = db.Column(db.Integer)
     
 class DailySkiData(db.Model):
     dailyDataId = db.Column(db.Integer, primary_key=True)
@@ -85,46 +90,60 @@ async def createUsername():
 async def initial_user_ski_data_sync(userId, web_id):
     # Start Web Scraper
     ski_history = SkiHistory()
-    ski_history.login()
-    web_id_response = ski_history.enter_web_id(web_id)
-    if web_id_response == False:
-        user_to_update = db.session.execute(db.select(Users).where(Users.userId == userId)).scalar()
-        user_to_update.web_id = None
-        db.session.commit()
-        return False
+    cookies = ski_history.login()
+    seasonIds = ski_history.getSeasonId(web_id, cookies["cookieString"], cookies["xsrf_token"])
+    seasonId = seasonIds["transactions"][0]
+    season_ski_history = ski_history.getSkiHistory(seasonId["NPOSNO"], seasonId["NPROJNO"], seasonId["NSERIALNO"], seasonId["SZVALIDFROM"], cookies["cookieString"], cookies["xsrf_token"])
     
-    total_ft_and_days = ski_history.get_ski_history()
     
-
-    # Get Yearly Totals
-    total_days = total_ft_and_days.text.split("SKIED: ")[1]
-    total_ft = total_ft_and_days.text.split("TOTAL VERTICAL FEET ")[1].split(", NUMBER")[0]
-    average_ft_per_day = int(total_ft.replace(",", "")) / int(total_days)
+    # Yearly Totals
+    yearly_elevation = 0
+    yearly_runs = 0
+    yearly_collins = 0
+    yearly_sunnyside = 0
+    yearly_wildcat = 0
+    yearly_supreme = 0
+    yearly_sugarloaf = 0
+    yearly_days_skied = 0
     
-
-    
-    # Save Yearly Totals to DB
-    user_to_update = db.session.execute(db.select(Users).where(Users.userId == userId)).scalar()
-    user_to_update.yearly_elevation = int(total_ft.replace(",", ""))
-    user_to_update.average_ft = int(average_ft_per_day)
-    user_to_update.days_skied = int(total_days)
-    db.session.commit()
-
-
-
-    day_list = ski_history.get_each_day()
-        
-    # Runs Each Day
-    day_list = ski_history.get_runs_each_day(day_list)
-    ski_history.driver.quit()
-    for day in day_list:
-        total_runs = len(day['runs'])
-        dataObj = datetime.strptime(day['date'], '%m/%d/%Y')
-        dailyDataId = await save_daily_totals(date=dataObj, feet=day['feet'], total_runs=total_runs, userId=userId)
-        for run in day['runs']:
-            time_object = datetime.strptime(run['time'], '%I:%M %p')
+    for day in season_ski_history["rides"]:
+        yearly_days_skied += 1
+        daily_elevation = int(day[0]["total"])
+        daily_runs = len(day)
+        dataObj = datetime.strptime(day[0]["SZDATEOFRIDE"], '%Y-%m-%d')
+        dailyDataId = await save_daily_totals(date=dataObj, feet=daily_elevation, total_runs=daily_runs, userId=userId)
+        for ride in day:
+            yearly_elevation += int(ride["NVERTICALFEET"])
+            daily_elevation += int(ride["NVERTICALFEET"])
+            daily_runs += 1
+            yearly_runs += 1
+            
+            if ride["SZPOENAME"] == "Wildcat":
+                yearly_wildcat += 1
+            elif ride["SZPOENAME"] == "Collins":
+                yearly_collins += 1
+            elif ride["SZPOENAME"] == "Sunnyside":
+                yearly_sunnyside += 1
+            elif ride["SZPOENAME"] == "Supreme":
+                yearly_supreme += 1
+            else:
+                yearly_sugarloaf += 1
+                
+            time_object = datetime.strptime(ride["SZTIMEOFRIDE"], '%H:%M:%S')
             sqlalchemy_time = time_object.time()
-            await save_run(dailyDataId=dailyDataId, lift=run['lift'], time=sqlalchemy_time, userId=userId, date=dataObj)
+            await save_run(dailyDataId=dailyDataId, lift=ride["SZPOENAME"], time=sqlalchemy_time, userId=userId, date=dataObj)
+            
+    average_ft_per_day = yearly_elevation / yearly_days_skied
+    user_to_update = db.session.execute(db.select(Users).where(Users.userId == userId)).scalar()
+    user_to_update.yearly_elevation = yearly_elevation
+    user_to_update.average_ft = int(average_ft_per_day)
+    user_to_update.days_skied = yearly_days_skied
+    user_to_update.collins = yearly_collins
+    user_to_update.wildcat = yearly_wildcat
+    user_to_update.sunnyside = yearly_sunnyside
+    user_to_update.supreme = yearly_supreme
+    user_to_update.sugarloaf = yearly_sugarloaf
+    db.session.commit()
     return True
 
 async def save_daily_totals(date, feet, total_runs, userId):
