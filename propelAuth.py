@@ -10,7 +10,7 @@ class PropelAuth:
     
     def checkUser(self, auth_header):
         try:
-            self.auth.validate_access_token_and_get_user(auth_header)
+            user = self.auth.validate_access_token_and_get_user(auth_header)
         except UnauthorizedException:
             return False
-        return True
+        return user.user_id

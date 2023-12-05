@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { Button } from 'flowbite-react';
-import {
-    useRedirectFunctions,
-    useAuthInfo
-} from "@propelauth/react";
+import { useRedirectFunctions, useAuthInfo } from "@propelauth/react";
 
 
 
@@ -12,6 +9,7 @@ import {
 function App() {
     const { redirectToSignupPage, redirectToLoginPage } = useRedirectFunctions()
     let navigate = useNavigate();
+    let bearerToken
     RetrieveUser()
     
     
@@ -21,6 +19,7 @@ function App() {
         if (authInfo.loading) {
             return <div>Loading...</div>;
         } else if (authInfo.isLoggedIn) {
+            bearerToken = `Bearer ${authInfo.accessToken}`
             loginUser(authInfo.user)
         }
     }
@@ -28,7 +27,7 @@ function App() {
     async function loginUser(user) {
         const requestOptions = {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', "Authorization": bearerToken },
             body: JSON.stringify(
                 {
                     email: user.email,

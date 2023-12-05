@@ -3,10 +3,12 @@ import { useAuthInfo } from "@propelauth/react";
 import { useNavigate } from 'react-router-dom';
 import { Button, Label, TextInput, Spinner } from 'flowbite-react';
 
+
 export default function SetUsername() {
     let navigate = useNavigate();
     const [username_helper_text, set_username_helper_text] = useState(<></>)
     let user
+    let bearerToken
     RetrieveUser()
   
     function RetrieveUser() {
@@ -14,6 +16,7 @@ export default function SetUsername() {
       if (authInfo.loading) {
         return <div>Loading...</div>;
       } else if (authInfo.isLoggedIn) {
+        bearerToken = `Bearer ${authInfo.accessToken}`
         user = authInfo.user
       } else {
         navigate('/welcome');
@@ -24,7 +27,7 @@ export default function SetUsername() {
       e.preventDefault()
       const requestOptions = {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', "Authorization": bearerToken },
         body: JSON.stringify(
           {
             userName: e.target.username.value,

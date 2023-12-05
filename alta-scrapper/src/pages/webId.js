@@ -8,6 +8,7 @@ export default function WebId() {
   const [web_id_helper_text, set_web_id_helper_text] = useState(<></>)
   const [is_loading, set_is_loading] = useState(false)
   let user
+  let bearerToken
   RetrieveUser()
 
   function RetrieveUser() {
@@ -15,6 +16,7 @@ export default function WebId() {
     if (authInfo.loading) {
       return <div>Loading...</div>;
     } else if (authInfo.isLoggedIn) {
+      bearerToken = `Bearer ${authInfo.accessToken}`
       user = authInfo.user
     } else {
       navigate('/welcome');
@@ -27,7 +29,7 @@ export default function WebId() {
     e.preventDefault()
     const requestOptions = {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', "Authorization": bearerToken },
       body: JSON.stringify(
         {
           web_id: e.target.webId.value,

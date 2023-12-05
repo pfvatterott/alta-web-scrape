@@ -39,53 +39,60 @@ class runSkiData(db.Model):
     time = db.Column(db.Time, nullable=False)
     userId = db.Column(db.String, nullable=False)
     
+    
 @app.route('/api/login', methods=["POST"])
 def login():
     body = request.get_json()
-    with app.app_context():
-        db.create_all()
-        userCheck = db.session.execute(db.select(Users).where(Users.userId == body['userId'])).scalar()
-        if not userCheck: 
-            user = Users(
-                userId = body['userId'], 
-                email = body['email']
-            )
-            db.session.add(user)
-            db.session.commit()
-        return {
-        "response": "success"
-        }
+    auth = PropelAuth()
+    if auth.checkUser(request.headers["Authorization"])  == body['userId']:
+        with app.app_context():
+            db.create_all()
+            userCheck = db.session.execute(db.select(Users).where(Users.userId == body['userId'])).scalar()
+            if not userCheck: 
+                user = Users(
+                    userId = body['userId'], 
+                    email = body['email']
+                )
+                db.session.add(user)
+                db.session.commit()
+            return {
+            "response": "success"
+            }
         
 @app.route('/api/saveWebId', methods=["POST"])
 async def createWebId():
     body = request.get_json()
-    with app.app_context():
-        userCheck = db.session.execute(db.select(Users).where(Users.web_id == body['web_id'])).scalar()
-        if not userCheck:
-            db.create_all()
-            user_to_update = db.session.execute(db.select(Users).where(Users.userId == body['userId'])).scalar()
-            user_to_update.web_id = body['web_id']
-            db.session.commit()
-            initial_sync_res = await initial_user_ski_data_sync(body['userId'], body['web_id'])
-            if initial_sync_res == False:
-                return {"response": "Web ID Not Valid. Try Again"}  
-            return {"response": "success"}
-        else:
-            return {"response": "Web ID Already Used"}
+    auth = PropelAuth()
+    if auth.checkUser(request.headers["Authorization"])  == body['userId']:
+        with app.app_context():
+            userCheck = db.session.execute(db.select(Users).where(Users.web_id == body['web_id'])).scalar()
+            if not userCheck:
+                db.create_all()
+                user_to_update = db.session.execute(db.select(Users).where(Users.userId == body['userId'])).scalar()
+                user_to_update.web_id = body['web_id']
+                db.session.commit()
+                initial_sync_res = await initial_user_ski_data_sync(body['userId'], body['web_id'])
+                if initial_sync_res == False:
+                    return {"response": "Web ID Not Valid. Try Again"}  
+                return {"response": "success"}
+            else:
+                return {"response": "Web ID Already Used"}
         
 @app.route('/api/saveUsername', methods=["POST"])
 async def createUsername():
     body = request.get_json()
-    with app.app_context():
-        userCheck = db.session.execute(db.select(Users).where(Users.userName == body['userName'])).scalar()
-        if not userCheck:
-            db.create_all()
-            user_to_update = db.session.execute(db.select(Users).where(Users.userId == body['userId'])).scalar()
-            user_to_update.userName = body['userName']
-            db.session.commit()
-            return {"response": "success"}
-        else:
-            return {"response": "Username Already Used"}
+    auth = PropelAuth()
+    if auth.checkUser(request.headers["Authorization"])  == body['userId']:
+        with app.app_context():
+            userCheck = db.session.execute(db.select(Users).where(Users.userName == body['userName'])).scalar()
+            if not userCheck:
+                db.create_all()
+                user_to_update = db.session.execute(db.select(Users).where(Users.userId == body['userId'])).scalar()
+                user_to_update.userName = body['userName']
+                db.session.commit()
+                return {"response": "success"}
+            else:
+                return {"response": "Username Already Used"}
 
 
 async def initial_user_ski_data_sync(userId, web_id):
@@ -179,7 +186,7 @@ async def save_run(dailyDataId, lift, time, userId, date):
 @app.route('/api/getUserSnowData/<userId>', methods=["GET"])
 async def getUserSnowData(userId):
     auth = PropelAuth()
-    if auth.checkUser(request.headers["Authorization"]):
+    if auth.checkUser(request.headers["Authorization"]) == userId:
         user = db.session.execute(db.select(Users).where(Users.userId == userId)).scalar()
         return {
             "userId": user.userId,
@@ -201,7 +208,7 @@ async def getUserSnowData(userId):
 @app.route('/api/lastDay/<userId>', methods=["GET"])
 async def getUserMostRecentDay(userId):
     auth = PropelAuth()
-    if auth.checkUser(request.headers["Authorization"]):
+    if auth.checkUser(request.headers["Authorization"])  == userId:
         lastDay = db.session.execute(db.select(DailySkiData).where(DailySkiData.userId == userId).order_by(DailySkiData.date.desc())).scalar()
         return {
             "dailyDataId": lastDay.dailyDataId,
