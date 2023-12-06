@@ -2,18 +2,17 @@ import React from 'react'
 import { Table } from 'flowbite-react';
 
 export default function DayTable(props) {
-
     const dayRows = props.dayData.map((data) => (
-        <Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
+        <Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800" key={data.dailyDataId}>
             <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-              {'Apple MacBook Pro 17"'}
+                {data.date}
             </Table.Cell>
-            <Table.Cell>{data.day}</Table.Cell>
-            <Table.Cell>{data.elevation}</Table.Cell>
-            <Table.Cell>{data.runs}</Table.Cell>
+            <Table.Cell>{data.daily_elevation}</Table.Cell>
+            <Table.Cell>{data.daily_runs}</Table.Cell>
           </Table.Row>
     ))
 
+    console.log(dayRows)
 
   return (
     <div className="overflow-x-auto">

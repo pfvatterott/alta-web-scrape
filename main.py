@@ -219,6 +219,25 @@ async def getUserMostRecentDay(userId):
         }
     else:
         return {"Error": "User not authorized"}
+    
+@app.route('/api/skiData/<userId>', methods=["GET"])
+async def getSkiData(userId):
+    auth = PropelAuth()
+    if auth.checkUser(request.headers["Authorization"])  == userId:
+        skiDays = db.session.execute(db.select(DailySkiData).where(DailySkiData.userId == userId).order_by(DailySkiData.date.desc())).scalars()
+        skiDayArray = []
+        for day in skiDays:
+            obj = {
+                "dailyDataId": day.dailyDataId,
+                "userId": day.userId,
+                "date": day.date.strftime('%m/%d/%Y'),
+                "daily_elevation": day.daily_elevation,
+                "daily_runs": day.daily_runs
+            }
+            skiDayArray.append(obj)
+        return skiDayArray
+    else:
+        return {"Error": "User not authorized"}
                 
 if __name__ == "__main__":
     app.run(debug=True)
