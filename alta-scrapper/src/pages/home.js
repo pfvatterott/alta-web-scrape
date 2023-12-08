@@ -89,25 +89,25 @@ export default function Home() {
             <NavBar />
             <div>
                 <div>
-                    <h3 className="mb-4 text-4xl font-extrabold tracking-tight leading-none text-gray-900 md:text-3xl lg:text-6xl dark:text-white">Hey, {user_snow_data.userName}</h3>
                     {user_snow_data && last_day_skied_data && ski_data ? <div>
+                        <h3 className="mb-4 text-4xl font-extrabold tracking-tight leading-none text-gray-900 md:text-3xl lg:text-6xl dark:text-white">Hey, {user_snow_data.userName}</h3>
                         <div className="flex flex-row">
-                            <div className="w-1/2">
+                            <div className="w-1/2 flex-1">
                                 <DayTable dayData={ski_data} />
                             </div>
 
-                            <div className="w-1/2 flex flex-wrap justify-around">
+                            <div className="w-1/2 flex-1 flex-wrap justify-around">
                                 <SeasonTotalCard user_snow_data={user_snow_data} />
 
                             </div>
                         </div>
-                            <div className="flex flex-row">
-                                <div className="w-1/2 flex flex-wrap justify-around">
+                            <div className="flex-1 flex-row">
+                                <div className="w-1/2 flex-1 flex-wrap justify-around">
 
                                     <LastDayCard last_day_skied_data={last_day_skied_data} />
 
                                 </div>
-                                <div className="w-1/2 flex flex-wrap justify-around">
+                                <div className="w-1/2 flex-1 flex-wrap justify-around">
 
                                     <ChairliftCard user_snow_data={user_snow_data} />
                                 </div>
