@@ -238,6 +238,31 @@ async def getSkiData(userId):
         return skiDayArray
     else:
         return {"Error": "User not authorized"}
+    
+    
+@app.route('/api/skiData/leaders/vertical', methods=["GET"])
+async def getLeaderData():
+    auth = PropelAuth()
+    if auth.checkUser(request.headers["Authorization"]):
+        leaders = db.session.execute(db.select(Users).order_by(Users.yearly_elevation.desc()).limit(25)).scalars()
+        print(leaders)
+        leadersArray = []
+        for user in leaders:
+            obj = {
+                "userName": user.userName,
+                "yearly_elevation": user.yearly_elevation,
+                "days_skied": user.days_skied,
+                "average_ft": user.average_ft,
+                "collins": user.collins,
+                "wildcat": user.wildcat,
+                "sunnyside": user.sunnyside,
+                "supreme": user.supreme,
+                "sugarloaf": user.sugarloaf
+            }
+            leadersArray.append(obj)
+        return leadersArray
+    else:
+        return {"Error": "User not authorized"}
                 
 if __name__ == "__main__":
     app.run(debug=True)
