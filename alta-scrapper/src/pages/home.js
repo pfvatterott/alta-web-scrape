@@ -107,7 +107,7 @@ export default function Home() {
                                     <LastDayCard last_day_skied_data={last_day_skied_data} />
 
                                 </div>
-                                <div className="w-1/2 flex flex-wrap justify-around">
+                                <div className="w-1/2 flex flex-wrap justify-around ">
 
                                     <ChairliftCard user_snow_data={user_snow_data} />
                                 </div>
