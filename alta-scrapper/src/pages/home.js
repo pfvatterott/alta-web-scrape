@@ -87,40 +87,22 @@ export default function Home() {
     return (
         <div className="App">
             <NavBar />
-            <div>
-                <div>
+            <div className="container mx-auto">
+                <div className="px-5">
                     {user_snow_data && last_day_skied_data && ski_data ? <div>
-                        <h3 className="mb-4 text-4xl font-extrabold tracking-tight leading-none text-gray-900 md:text-3xl lg:text-6xl dark:text-white">Hey, {user_snow_data.userName}</h3>
-                        <div className="flex flex-row">
-                            <div className="w-1/2 flex-1">
-                                <DayTable dayData={ski_data} />
-                            </div>
-
-                            <div className="w-1/2 flex-1 flex-wrap justify-around">
-                                <SeasonTotalCard user_snow_data={user_snow_data} />
-
-                            </div>
+                        <h3 className="mb-4 text-4xl font-extrabold tracking-tight leading-none text-gray-900 md:text-3xl lg:text-4xl dark:text-white py-10 text-left">Hey, {user_snow_data.userName}</h3>
+                        <div className="container m-auto grid gap-4">
+                            <SeasonTotalCard user_snow_data={user_snow_data} />
+                            <LastDayCard last_day_skied_data={last_day_skied_data} />
+                            <ChairliftCard user_snow_data={user_snow_data} />
+                            <div className="col-span-3 md:col-span-5 lg:col-span-8"> 
+                            <DayTable dayData={ski_data}/>
+                            </div> 
                         </div>
-                            <div className="flex-1 flex-row">
-                                <div className="w-1/2 flex-1 flex-wrap justify-around">
-
-                                    <LastDayCard last_day_skied_data={last_day_skied_data} />
-
-
-                                <div className="w-1/2 flex flex-wrap justify-around ">
-
-
-                                    <ChairliftCard user_snow_data={user_snow_data} />
-                                </div>
-                            </div>
-                        
                     </div> : <Spinner aria-label="Default status example" className="h-screen items-center" />}
-
                 </div>
-
-            </div >
+            </div>
             <FooterCustom />
-
         </div >
     )
 }
